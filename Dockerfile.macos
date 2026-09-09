@@ -1,0 +1,32 @@
+# The official image supplies the release's Linux ARM64 build tools and runtime.
+ARG UPSTREAM_IMAGE=dokploy/dokploy:v0.30.6@sha256:1d6bd69ba58c1b4e305a9a33d77d8c3e0ee34707169f680cc600ab7ef1c3e6d8
+FROM ${UPSTREAM_IMAGE} AS build
+WORKDIR /usr/src/app
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ pkg-config libsecret-1-dev \
+    && rm -rf /var/lib/apt/lists/*
+COPY . .
+RUN cp apps/dokploy/.env.production.example .env.production \
+    && cp apps/dokploy/.env.production.example apps/dokploy/.env.production
+RUN pnpm install --frozen-lockfile
+RUN pnpm --filter=@dokploy/server build
+RUN pnpm --filter=./apps/dokploy run build
+RUN pnpm --filter=./apps/dokploy --prod deploy --legacy /prod/dokploy \
+    && cp -R apps/dokploy/.next /prod/dokploy/.next \
+    && cp -R apps/dokploy/dist /prod/dokploy/dist
+
+FROM ${UPSTREAM_IMAGE}
+WORKDIR /app
+RUN rm -rf .next dist node_modules
+COPY --from=build /prod/dokploy/.next ./.next
+COPY --from=build /prod/dokploy/dist ./dist
+COPY --from=build /prod/dokploy/node_modules ./node_modules
+COPY --from=build /prod/dokploy/public ./public
+COPY --from=build /prod/dokploy/drizzle ./drizzle
+COPY --from=build /prod/dokploy/next.config.mjs ./next.config.mjs
+COPY --from=build /prod/dokploy/package.json ./package.json
+COPY --from=build /prod/dokploy/components.json ./components.json
+COPY --from=build /usr/src/app/.env.production ./.env
+ARG SOURCE_REVISION
+LABEL org.opencontainers.image.source="https://github.com/NakamaDevs/dokploy" \
+      org.opencontainers.image.revision="${SOURCE_REVISION}" \
+      org.opencontainers.image.version="0.30.6-nakama.1"

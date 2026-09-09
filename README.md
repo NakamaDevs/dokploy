@@ -34,6 +34,9 @@ Dokploy includes multiple features to make your life easier.
 
 ## 🚀 Getting Started
 
+For this fork's Apple Silicon and OrbStack installation, follow [Dokploy on macOS](MACOS.md).
+The macOS guide preserves host bind mounts and uses a verified fork image.
+
 To get started, run the following command on a VPS:
 
 Want to skip the installation process? [Try the Dokploy Cloud](https://app.dokploy.com).

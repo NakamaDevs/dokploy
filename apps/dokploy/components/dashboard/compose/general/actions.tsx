@@ -1,6 +1,13 @@
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import { Ban, CheckCircle2, RefreshCcw, Rocket, Terminal } from "lucide-react";
+import {
+	Ban,
+	CheckCircle2,
+	HardDriveDownload,
+	RefreshCcw,
+	Rocket,
+	Terminal,
+} from "lucide-react";
 import { useRouter } from "next/router";
+import { Tooltip as TooltipPrimitive } from "radix-ui";
 import { toast } from "sonner";
 import { DialogAction } from "@/components/shared/dialog-action";
 import { Button } from "@/components/ui/button";
@@ -72,7 +79,7 @@ export const ComposeActions = ({ composeId }: Props) => {
 									</div>
 								</TooltipTrigger>
 								<TooltipPrimitive.Portal>
-									<TooltipContent sideOffset={5} className="z-[60]">
+									<TooltipContent sideOffset={5} className="z-60">
 										<p>
 											Downloads the source code and performs a complete build
 										</p>
@@ -82,21 +89,66 @@ export const ComposeActions = ({ composeId }: Props) => {
 						</Button>
 					</DialogAction>
 				)}
+				{canDeploy && data?.composeType === "docker-compose" && (
+					<DialogAction
+						title="Deploy with Fresh Volumes"
+						description="This will remove all volumes and redeploy with a clean state. All persistent data will be permanently deleted."
+						type="destructive"
+						onClick={async () => {
+							await deploy({
+								composeId: composeId,
+								freshVolumes: true,
+							})
+								.then(() => {
+									toast.success("Compose deployed with fresh volumes");
+									refetch();
+									router.push(
+										`/dashboard/project/${data?.environment.projectId}/environment/${data?.environmentId}/services/compose/${composeId}?tab=deployments`,
+									);
+								})
+								.catch(() => {
+									toast.error("Error deploying compose");
+								});
+						}}
+					>
+						<Button
+							variant="outline"
+							isLoading={data?.composeStatus === "running"}
+							className="flex items-center gap-1.5 group focus-visible:ring-2 focus-visible:ring-offset-2"
+						>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<div className="flex items-center">
+										<HardDriveDownload className="size-4 mr-1" />
+										Fresh Volumes
+									</div>
+								</TooltipTrigger>
+								<TooltipPrimitive.Portal>
+									<TooltipContent sideOffset={5} className="z-[60]">
+										<p>
+											Deploy with fresh volumes (removes all persistent data)
+										</p>
+									</TooltipContent>
+								</TooltipPrimitive.Portal>
+							</Tooltip>
+						</Button>
+					</DialogAction>
+				)}
 				{canDeploy && (
 					<DialogAction
-						title="Reload Compose"
-						description="Are you sure you want to reload this compose?"
+						title="Rebuild Compose"
+						description="Are you sure you want to rebuild this compose?"
 						type="default"
 						onClick={async () => {
 							await redeploy({
 								composeId: composeId,
 							})
 								.then(() => {
-									toast.success("Compose reloaded successfully");
+									toast.success("Compose rebuilt successfully");
 									refetch();
 								})
 								.catch(() => {
-									toast.error("Error reloading compose");
+									toast.error("Error rebuilding compose");
 								});
 						}}
 					>
@@ -109,12 +161,14 @@ export const ComposeActions = ({ composeId }: Props) => {
 								<TooltipTrigger asChild>
 									<div className="flex items-center">
 										<RefreshCcw className="size-4 mr-1" />
-										Reload
+										Rebuild
 									</div>
 								</TooltipTrigger>
 								<TooltipPrimitive.Portal>
-									<TooltipContent sideOffset={5} className="z-[60]">
-										<p>Reload the compose without rebuilding it</p>
+									<TooltipContent sideOffset={5} className="z-60">
+										<p>
+											Rebuilds the compose without downloading the source code
+										</p>
 									</TooltipContent>
 								</TooltipPrimitive.Portal>
 							</Tooltip>
@@ -154,7 +208,7 @@ export const ComposeActions = ({ composeId }: Props) => {
 										</div>
 									</TooltipTrigger>
 									<TooltipPrimitive.Portal>
-										<TooltipContent sideOffset={5} className="z-[60]">
+										<TooltipContent sideOffset={5} className="z-60">
 											<p>
 												Start the compose (requires a previous successful build)
 											</p>
@@ -193,7 +247,7 @@ export const ComposeActions = ({ composeId }: Props) => {
 										</div>
 									</TooltipTrigger>
 									<TooltipPrimitive.Portal>
-										<TooltipContent sideOffset={5} className="z-[60]">
+										<TooltipContent sideOffset={5} className="z-60">
 											<p>Stop the currently running compose</p>
 										</TooltipContent>
 									</TooltipPrimitive.Portal>
@@ -206,6 +260,7 @@ export const ComposeActions = ({ composeId }: Props) => {
 				appName={data?.appName || ""}
 				serverId={data?.serverId || ""}
 				appType={data?.composeType || "docker-compose"}
+				serviceId={data?.composeId}
 			>
 				<Button
 					variant="outline"

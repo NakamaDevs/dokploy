@@ -9,7 +9,7 @@ import {
 import path from "node:path";
 import type { ContainerCreateOptions, CreateServiceOptions } from "dockerode";
 import { stringify } from "yaml";
-import { paths } from "../constants";
+import { hostPaths, paths } from "../constants";
 import { getRemoteDocker } from "../utils/servers/remote-docker";
 import type { FileConfig } from "../utils/traefik/file-types";
 import type { MainTraefikConfig } from "../utils/traefik/types";
@@ -20,7 +20,7 @@ export const TRAEFIK_PORT =
 	Number.parseInt(process.env.TRAEFIK_PORT!, 10) || 80;
 export const TRAEFIK_HTTP3_PORT =
 	Number.parseInt(process.env.TRAEFIK_HTTP3_PORT!, 10) || 443;
-export const TRAEFIK_VERSION = process.env.TRAEFIK_VERSION || "3.6.7";
+export const TRAEFIK_VERSION = process.env.TRAEFIK_VERSION || "3.6.25";
 
 export interface TraefikOptions {
 	env?: string[];
@@ -37,7 +37,10 @@ export const initializeStandaloneTraefik = async ({
 	serverId,
 	additionalPorts = [],
 }: TraefikOptions = {}) => {
-	const { MAIN_TRAEFIK_PATH, DYNAMIC_TRAEFIK_PATH } = paths(!!serverId);
+	const {
+		MAIN_TRAEFIK_PATH: HOST_MAIN_TRAEFIK_PATH,
+		DYNAMIC_TRAEFIK_PATH: HOST_DYNAMIC_TRAEFIK_PATH,
+	} = hostPaths(!!serverId);
 	const imageName = `traefik:v${TRAEFIK_VERSION}`;
 	const containerName = "dokploy-traefik";
 
@@ -84,8 +87,8 @@ export const initializeStandaloneTraefik = async ({
 				Name: "always",
 			},
 			Binds: [
-				`${MAIN_TRAEFIK_PATH}/traefik.yml:/etc/traefik/traefik.yml`,
-				`${DYNAMIC_TRAEFIK_PATH}:/etc/dokploy/traefik/dynamic`,
+				`${HOST_MAIN_TRAEFIK_PATH}/traefik.yml:/etc/traefik/traefik.yml`,
+				`${HOST_DYNAMIC_TRAEFIK_PATH}:/etc/dokploy/traefik/dynamic`,
 				"/var/run/docker.sock:/var/run/docker.sock",
 			],
 			PortBindings: portBindings,
@@ -122,7 +125,10 @@ export const initializeTraefikService = async ({
 	additionalPorts = [],
 	serverId,
 }: TraefikOptions) => {
-	const { MAIN_TRAEFIK_PATH, DYNAMIC_TRAEFIK_PATH } = paths(!!serverId);
+	const {
+		MAIN_TRAEFIK_PATH: HOST_MAIN_TRAEFIK_PATH,
+		DYNAMIC_TRAEFIK_PATH: HOST_DYNAMIC_TRAEFIK_PATH,
+	} = hostPaths(!!serverId);
 	const imageName = `traefik:v${TRAEFIK_VERSION}`;
 	const appName = "dokploy-traefik";
 
@@ -135,12 +141,12 @@ export const initializeTraefikService = async ({
 				Mounts: [
 					{
 						Type: "bind",
-						Source: `${MAIN_TRAEFIK_PATH}/traefik.yml`,
+						Source: `${HOST_MAIN_TRAEFIK_PATH}/traefik.yml`,
 						Target: "/etc/traefik/traefik.yml",
 					},
 					{
 						Type: "bind",
-						Source: DYNAMIC_TRAEFIK_PATH,
+						Source: HOST_DYNAMIC_TRAEFIK_PATH,
 						Target: "/etc/dokploy/traefik/dynamic",
 					},
 					{
