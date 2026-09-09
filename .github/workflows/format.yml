@@ -8,6 +8,7 @@ on:
 
 jobs:
   format:
+    if: github.repository == 'Dokploy/dokploy'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

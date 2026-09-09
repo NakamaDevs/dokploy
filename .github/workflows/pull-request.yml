@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   pr-check:
+    if: github.repository == 'Dokploy/dokploy'
     runs-on: ubuntu-latest
     strategy:
       matrix:

@@ -33,6 +33,7 @@ jobs:
 
   # ── 1. Build the matrix ─────────────────────────────────────────────────────
   build-matrix:
+    if: github.repository == 'Dokploy/dokploy'
     name: Build upgrade pair matrix
     runs-on: ubuntu-latest
     outputs:
@@ -101,6 +102,7 @@ jobs:
 
   # ── 2. Run one upgrade test per pair ────────────────────────────────────────
   upgrade-test:
+    if: github.repository == 'Dokploy/dokploy'
     name: "${{ matrix.pair.from }} → ${{ matrix.pair.to }}"
     needs: build-matrix
     runs-on: ubuntu-latest
