@@ -10,6 +10,7 @@ export const DOKPLOY_DOCKER_HOST = process.env.DOKPLOY_DOCKER_HOST;
 export const DOKPLOY_DOCKER_PORT = process.env.DOKPLOY_DOCKER_PORT
 	? Number(process.env.DOKPLOY_DOCKER_PORT)
 	: undefined;
+export const DOKPLOY_HOST_ROOT_PATH = process.env.DOKPLOY_HOST_ROOT_PATH;
 
 export const CLEANUP_CRON_JOB = "50 23 * * *";
 
@@ -116,10 +117,14 @@ if (!globalForDocker.docker) {
 export const docker = globalForDocker.docker;
 
 export const paths = (isServer = false) => {
-	const BASE_PATH =
-		isServer || process.env.NODE_ENV === "production"
-			? "/etc/dokploy"
-			: path.join(process.cwd(), ".docker");
+	// Local files and Docker bind sources must use the same absolute path.
+	// Remote servers retain their own Linux filesystem layout.
+	const BASE_PATH = isServer
+		? "/etc/dokploy"
+		: DOKPLOY_HOST_ROOT_PATH ||
+			(process.env.NODE_ENV === "production"
+				? "/etc/dokploy"
+				: path.join(process.cwd(), ".docker"));
 	const MAIN_TRAEFIK_PATH = `${BASE_PATH}/traefik`;
 	const DYNAMIC_TRAEFIK_PATH = `${MAIN_TRAEFIK_PATH}/dynamic`;
 
@@ -140,3 +145,5 @@ export const paths = (isServer = false) => {
 		PATCH_REPOS_PATH: `${BASE_PATH}/patch-repos`,
 	};
 };
+
+export const hostPaths = paths;

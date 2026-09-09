@@ -1,7 +1,7 @@
 import { findServerById } from "@dokploy/server/services/server";
 import { getWebServerSettings } from "@dokploy/server/services/web-server-settings";
 import type { CreateServiceOptions } from "dockerode";
-import { IS_CLOUD } from "../constants";
+import { hostPaths, IS_CLOUD } from "../constants";
 import { getDokployImageTag } from "../services/settings";
 import { pullImage, pullRemoteImage } from "../utils/docker/utils";
 import { execAsync, execAsyncRemote } from "../utils/process/execAsync";
@@ -69,6 +69,7 @@ const deployMonitoringService = async (
 
 export const setupMonitoring = async (serverId: string) => {
 	const server = await findServerById(serverId);
+	const { MONITORING_PATH } = hostPaths(!!serverId);
 
 	const serviceName = "dokploy-monitoring";
 	const imageName = getMonitoringImage();
@@ -106,7 +107,7 @@ export const setupMonitoring = async (serverId: string) => {
 					},
 					{
 						Type: "bind",
-						Source: "/etc/dokploy/monitoring/monitoring.db",
+						Source: `${MONITORING_PATH}/monitoring.db`,
 						Target: "/app/monitoring.db",
 					},
 				],
@@ -135,6 +136,7 @@ export const setupMonitoring = async (serverId: string) => {
 
 export const setupWebMonitoring = async () => {
 	const webServerSettings = await getWebServerSettings();
+	const { MONITORING_PATH } = hostPaths();
 
 	const serviceName = "dokploy-monitoring";
 	const imageName = getMonitoringImage();
@@ -175,7 +177,7 @@ export const setupWebMonitoring = async () => {
 					},
 					{
 						Type: "bind",
-						Source: "/etc/dokploy/monitoring/monitoring.db",
+						Source: `${MONITORING_PATH}/monitoring.db`,
 						Target: "/app/monitoring.db",
 					},
 				],
