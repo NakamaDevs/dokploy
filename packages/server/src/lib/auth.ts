@@ -116,7 +116,9 @@ const createBetterAuth = () =>
 			},
 		},
 		logger: {
-			disabled: process.env.NODE_ENV === "production",
+			// Keep authentication failures visible in production without debug output.
+			disabled: false,
+			level: "warn",
 		},
 		trustedOrigins: resolveTrustedOrigins,
 		hooks: {
