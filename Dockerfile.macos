@@ -1,5 +1,5 @@
 # The official image supplies the release's Linux ARM64 build tools and runtime.
-ARG UPSTREAM_IMAGE=dokploy/dokploy:v0.30.6@sha256:1d6bd69ba58c1b4e305a9a33d77d8c3e0ee34707169f680cc600ab7ef1c3e6d8
+ARG UPSTREAM_IMAGE=dokploy/dokploy:v0.30.10@sha256:417cb052bed87c95ab43276888329da261f360c043bb81cd4afd7a2df66c4be7
 FROM ${UPSTREAM_IMAGE} AS build
 WORKDIR /usr/src/app
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ pkg-config libsecret-1-dev \
@@ -29,4 +29,4 @@ COPY --from=build /usr/src/app/.env.production ./.env
 ARG SOURCE_REVISION
 LABEL org.opencontainers.image.source="https://github.com/NakamaDevs/dokploy" \
       org.opencontainers.image.revision="${SOURCE_REVISION}" \
-      org.opencontainers.image.version="0.30.6-nakama.1"
+      org.opencontainers.image.version="0.30.10-nakama.1"
