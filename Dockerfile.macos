@@ -2,6 +2,8 @@
 ARG UPSTREAM_IMAGE=dokploy/dokploy:v0.30.10@sha256:417cb052bed87c95ab43276888329da261f360c043bb81cd4afd7a2df66c4be7
 FROM ${UPSTREAM_IMAGE} AS build
 WORKDIR /usr/src/app
+# Node 24 headers require C++20, including optional Tree-sitter native builds.
+ENV CXXFLAGS="-std=c++20"
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ pkg-config libsecret-1-dev \
     && rm -rf /var/lib/apt/lists/*
 COPY . .
@@ -13,6 +15,7 @@ RUN pnpm --filter=./apps/dokploy run build
 RUN pnpm --filter=./apps/dokploy --prod deploy --legacy /prod/dokploy \
     && cp -R apps/dokploy/.next /prod/dokploy/.next \
     && cp -R apps/dokploy/dist /prod/dokploy/dist
+RUN node scripts/check-native-parsers.cjs /prod/dokploy
 
 FROM ${UPSTREAM_IMAGE}
 WORKDIR /app

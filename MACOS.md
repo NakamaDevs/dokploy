@@ -114,8 +114,15 @@ pnpm install --frozen-lockfile
 pnpm --filter=@dokploy/server typecheck
 pnpm --filter=dokploy test --run __test__/setup/host-paths.test.ts
 bash -n scripts/macos-install.sh
+python3 scripts/check-macos-mounts.py nakamadevs/dokploy:0.30.10-macos
 git diff --check
 ```
+
+The macOS Docker build uses C++20 for Node 24 native modules and runs `scripts/check-native-parsers.cjs` against the packaged JSON and YAML parsers. A missing or broken native module fails the build.
+
+The mount check creates a temporary directory under the existing host data root, verifies compiled paths, exercises three bind-mount lifecycles and a Compose relative mount, and removes its probe. Docker commands have bounded timeouts. If a probe hangs, inspect OrbStack before deploying; do not restart the runtime automatically because it hosts other services.
+
+Run isolated unit tests with `NODE_ENV=test` so filesystem tests do not inherit the production image’s path defaults.
 
 The upstream `*.real.test.ts` suites require Docker, network access, and build tools.
 Run them only in a disposable test environment.
