@@ -555,6 +555,14 @@ export const settingsRouter = createTRPCRouter({
 			return true;
 		}
 
+		if (process.env.DOKPLOY_HOST_ROOT_PATH) {
+			throw new TRPCError({
+				code: "PRECONDITION_FAILED",
+				message:
+					"This installation requires the macOS fork. Build and deploy the updated fork image using MACOS.md; the upstream updater would remove host-path support.",
+			});
+		}
+
 		const data = await getUpdateData(packageInfo.version);
 		if (data.updateAvailable) {
 			void spawnAsync("docker", [

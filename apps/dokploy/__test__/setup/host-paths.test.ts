@@ -1,3 +1,4 @@
+import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 afterEach(() => {
@@ -12,6 +13,10 @@ describe("Docker host paths", () => {
 		const { hostPaths, paths } = await import("@dokploy/server/constants");
 
 		expect(paths().BASE_PATH).toBe("/Users/operator/dokploy");
+		expect(paths().COMPOSE_PATH).toBe("/Users/operator/dokploy/compose");
+		expect(paths().APPLICATIONS_PATH).toBe(
+			"/Users/operator/dokploy/applications",
+		);
 		expect(paths()).toEqual(hostPaths());
 		expect(hostPaths().BASE_PATH).toBe("/Users/operator/dokploy");
 		expect(hostPaths().MAIN_TRAEFIK_PATH).toBe(
@@ -41,6 +46,11 @@ describe("Docker host paths", () => {
 			const { hostPaths, paths } = await import("@dokploy/server/constants");
 
 			expect(hostPaths()).toEqual(paths());
+			expect(paths().BASE_PATH).toBe(
+				mode === "production"
+					? "/etc/dokploy"
+					: path.join(process.cwd(), ".docker"),
+			);
 		},
 	);
 });

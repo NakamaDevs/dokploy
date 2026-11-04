@@ -1,7 +1,7 @@
 # Dokploy on macOS
 
 This fork supports a containerized Dokploy installation on an Apple Silicon Mac with OrbStack.
-It uses Dokploy `v0.30.6` from commit `6dcd0e185939292c9e07b3829c38b669b3c8cb78`.
+It uses Dokploy `v0.30.10` from commit `073713f0b863eca4285ad24db00550af1b39397a`.
 
 ## Build the image
 
@@ -9,7 +9,7 @@ Run from this repository with Docker running:
 
 ```sh
 docker build --platform linux/arm64 -f Dockerfile.macos \
-  -t nakamadevs/dokploy:0.30.6-macos .
+  -t nakamadevs/dokploy:0.30.10-macos .
 ```
 
 The build uses the upstream runtime image by digest and the committed pnpm lockfile.
@@ -45,7 +45,7 @@ Keep these values unchanged during upgrades.
 Load the built image on the target Mac, then run:
 
 ```sh
-export DOKPLOY_IMAGE=nakamadevs/dokploy:0.30.6-macos
+export DOKPLOY_IMAGE=nakamadevs/dokploy:0.30.10-macos
 export POSTGRES_IMAGE=postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
 bash scripts/macos-install.sh install
 ```
@@ -101,7 +101,7 @@ Store the monitoring token in your password manager.
 Test application file mounts, Compose relative mounts, and a Traefik route before deploying workloads.
 
 Use a verified fork image for upgrades.
-The upstream dashboard updater installs the upstream image and removes this fork's macOS support.
+The dashboard updater is blocked when `DOKPLOY_HOST_ROOT_PATH` is set, because the upstream image ignores this path and would remove macOS bind-mount support. Build this fork with `Dockerfile.macos` and update the service to the verified fork image instead.
 Record the previous image ID before an upgrade.
 Back up PostgreSQL, the host data directory, and Docker volumes before database migrations.
 If rollback requires an older database schema, restore the matching backup.
